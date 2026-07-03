@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>arc_gen — Analysis and Reporting Code Generator</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link id="hljs-theme" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="app-container">
+
+  <!-- ══ Header ══ -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="header-logo">
+        <i class="fas fa-flask-vial" style="color:white"></i>
+      </div>
+      <div class="header-title-group">
+        <h1>arc_gen</h1>
+        <div class="header-subtitle">Analysis and Reporting Code Generator</div>
+      </div>
+      <span class="header-badge"><i class="fas fa-shield-halved"></i> CDISC Compliant</span>
+    </div>
+    <div class="header-right">
+      <div class="api-status" id="api-status">
+        <span class="status-dot"></span>
+        <span id="api-status-text">Connecting…</span>
+      </div>
+      <button class="icon-btn theme-toggle-btn" id="theme-toggle" title="Toggle Light/Dark Mode">
+        <i class="fas fa-sun" id="theme-icon"></i>
+      </button>
+      <button class="icon-btn" data-tooltip="Settings" title="Settings">
+        <i class="fas fa-sliders"></i>
+      </button>
+      <button class="icon-btn" data-tooltip="Help" title="Help">
+        <i class="fas fa-circle-question"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ══ Main ══ -->
+  <main class="main-content">
+
+    <!-- ─── Left: Config Panel ─── -->
+    <aside class="config-panel">
+
+      <!-- Analysis Type (always visible) -->
+      <div class="panel-section">
+        <div class="section-header" data-section="analysis">
+          <div class="section-title"><i class="fas fa-chart-bar"></i> Analysis Type</div>
+          <i class="fas fa-chevron-down section-toggle"></i>
+        </div>
+        <div class="section-body">
+          <div class="analysis-grid">
+            <button class="analysis-card" data-analysis="descriptive">
+              <i class="fas fa-list-ol"></i> Descriptive
+            </button>
+            <button class="analysis-card" data-analysis="efficacy">
+              <i class="fas fa-bullseye"></i> Efficacy
+            </button>
+            <button class="analysis-card" data-analysis="safety">
+              <i class="fas fa-shield-heart"></i> Safety
+            </button>
+            <button class="analysis-card" data-analysis="survival">
+              <i class="fas fa-wave-square"></i> Survival
+            </button>
+            <button class="analysis-card" data-analysis="mixed_model">
+              <i class="fas fa-chart-mixed"></i> Mixed Model
+            </button>
+            <button class="analysis-card" data-analysis="categorical">
+              <i class="fas fa-chart-pie"></i> Categorical
+            </button>
+            <button class="analysis-card" data-analysis="pk">
+              <i class="fas fa-pills"></i> PK Analysis
+            </button>
+            <button class="analysis-card" data-analysis="subgroup">
+              <i class="fas fa-diagram-project"></i> Subgroup
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Output Type (shown after analysis type selected) -->
+      <div class="panel-section context-section" id="section-output" style="display:none">
+        <div class="section-header" data-section="output">
+          <div class="section-title"><i class="fas fa-file-export"></i> Output Type</div>
+          <i class="fas fa-chevron-down section-toggle"></i>
+        </div>
+        <div class="section-body">
+          <div class="output-type-grid" id="output-type-grid">
+            <!-- Populated dynamically -->
+          </div>
+          <div class="form-group">
+            <label class="form-label">Output Format</label>
+            <div class="select-wrapper">
+              <select id="output-format" class="form-select">
+                <option value="" disabled selected>— Select —</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Data (shown after analysis type selected) -->
+      <div class="panel-section context-section" id="section-data" style="display:none">
+        <div class="section-header" data-section="data">
+          <div class="section-title"><i class="fas fa-folder-open"></i> Input Data</div>
+          <i class="fas fa-chevron-down section-toggle"></i>
+        </div>
+        <div class="section-body">
+          <div class="form-group">
+            <label class="form-label">Datasets (comma-separated)</label>
+            <input type="text" id="input-datasets" class="form-input"
+                placeholder="">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Data Format</label>
+              <div class="select-wrapper">
+                <select id="data-format" class="form-select">
+                  <option value="" disabled selected>— Select —</option>
+                  <option value="adam">ADaM</option>
+                  <option value="sdtm">SDTM</option>
+                  <option value="raw">Raw/Source</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Output Name</label>
+              <input type="text" id="output-name" class="form-input"
+                placeholder="t_ae_summary">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Library Path</label>
+            <input type="text" id="library-path" class="form-input"
+                placeholder="/data/study123/adam">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Output Path</label>
+            <input type="text" id="output-path" class="form-input"
+                placeholder="/output/tables">
+          </div>
+        </div>
+      </div>
+
+      <!-- Variables (shown after analysis type selected, fields are contextual) -->
+      <div class="panel-section context-section" id="section-vars" style="display:none">
+        <div class="section-header" data-section="vars">
+          <div class="section-title"><i class="fas fa-tags"></i> Variables</div>
+          <i class="fas fa-chevron-down section-toggle"></i>
+        </div>
+        <div class="section-body">
+          <div class="form-group" id="group-analysis-vars">
+            <label class="form-label">Analysis Variables</label>
+            <input type="text" id="analysis-vars" class="form-input"
+                placeholder="">
+          </div>
+          <div class="form-group" id="group-grouping-vars">
+            <label class="form-label">Grouping Variables</label>
+            <input type="text" id="grouping-vars" class="form-input"
+                placeholder="">
+          </div>
+          <div class="form-group" id="group-filter-vars">
+            <label class="form-label">Filter / Population Flags</label>
+            <input type="text" id="filter-vars" class="form-input"
+                placeholder="">
+          </div>
+          <div class="form-group" id="group-sort-vars">
+            <label class="form-label">Sort Variables</label>
+            <input type="text" id="sort-vars" class="form-input"
+                placeholder="">
+          </div>
+          <div class="form-group" id="group-subgroup-vars" style="display:none">
+            <label class="form-label">Subgroup Variables</label>
+            <input type="text" id="subgroup-vars" class="form-input"
+                placeholder="SEX, AGEGR1, RACE">
+          </div>
+        </div>
+      </div>
+
+      <!-- Analysis Parameters (shown after analysis type selected, contextual) -->
+      <div class="panel-section context-section" id="section-params" style="display:none">
+        <div class="section-header" data-section="params">
+          <div class="section-title"><i class="fas fa-calculator"></i> Parameters</div>
+          <i class="fas fa-chevron-down section-toggle"></i>
+        </div>
+        <div class="section-body">
+          <div class="form-group">
+            <label class="form-label">Statistical Method</label>
+            <div class="select-wrapper">
+              <select id="stat-method" class="form-select">
+                <option value="" disabled selected>— Select —</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Alpha (α)</label>
+              <input type="number" id="alpha" class="form-input" placeholder="0.05" step="0.01" min="0.01" max="0.1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confidence</label>
+              <input type="number" id="conf-level" class="form-input" placeholder="0.95" step="0.01" min="0.9" max="0.99">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Population</label>
+            <div class="select-wrapper">
+              <select id="population" class="form-select">
+                <option value="" disabled selected>— Select —</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" id="group-trt-var">
+            <label class="form-label">Treatment Variable</label>
+            <input type="text" id="trt-var" class="form-input" placeholder="TRTA">
+          </div>
+          <div class="form-group" id="group-covariates" style="display:none">
+            <label class="form-label">Covariates</label>
+            <input type="text" id="covariates" class="form-input" placeholder="BASE, SITEID">
+          </div>
+        </div>
+      </div>
+
+      <!-- Submission Details (shown after analysis type selected) -->
+      <div class="panel-section context-section" id="section-submission" style="display:none">
+        <div class="section-header" data-section="submission">
+          <div class="section-title"><i class="fas fa-building-columns"></i> Submission</div>
+          <i class="fas fa-chevron-down section-toggle"></i>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Study ID</label>
+              <input type="text" id="study-id" class="form-input" placeholder="STUDY-001">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Protocol</label>
+              <input type="text" id="protocol" class="form-input" placeholder="D1234C00001">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sponsor / Organization</label>
+            <input type="text" id="sponsor" class="form-input" placeholder="AstraZeneca">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Authority</label>
+              <div class="select-wrapper">
+                <select id="reg-authority" class="form-select">
+                  <option value="" disabled selected>— Select —</option>
+                  <option value="FDA">FDA (US)</option>
+                  <option value="EMA">EMA (EU)</option>
+                  <option value="PMDA">PMDA (Japan)</option>
+                  <option value="NMPA">NMPA (China)</option>
+                  <option value="HC">Health Canada</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sub. Type</label>
+              <div class="select-wrapper">
+                <select id="submission-type" class="form-select">
+                  <option value="" disabled selected>— Select —</option>
+                  <option value="NDA">NDA</option>
+                  <option value="BLA">BLA</option>
+                  <option value="MAA">MAA</option>
+                  <option value="sNDA">sNDA</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Files (shown after analysis type selected) -->
+      <div class="panel-section context-section" id="section-upload" style="display:none">
+        <div class="section-header" data-section="upload">
+          <div class="section-title"><i class="fas fa-upload"></i> Upload Files</div>
+          <i class="fas fa-chevron-down section-toggle"></i>
+        </div>
+        <div class="section-body" style="gap:8px">
+          <input type="file" id="shell-file" accept=".xlsx,.xls,.rtf,.pdf,.docx" hidden>
+          <div class="upload-zone" id="shell-upload-area">
+            <div class="upload-icon"><i class="fas fa-file-image"></i></div>
+            <div class="upload-title">Output Shell Template</div>
+            <div class="upload-hint">RTF, Excel, PDF, or DOCX mock-up</div>
+            <div class="upload-status" id="shell-status"></div>
+          </div>
+
+          <input type="file" id="spec-file" accept=".xlsx,.xls,.csv,.json" hidden>
+          <div class="upload-zone" id="spec-upload-area">
+            <div class="upload-icon"><i class="fas fa-file-spreadsheet"></i></div>
+            <div class="upload-title">Variable Specification</div>
+            <div class="upload-hint">Excel, CSV, or JSON spec file</div>
+            <div class="upload-status" id="spec-status"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate -->
+      <div class="generate-section">
+        <button id="generate-btn" class="generate-btn">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          Generate All Code
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- ─── Right: Output Panel ─── -->
+    <section class="output-panel">
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="code">
+          <i class="fas fa-code"></i> Generated Code
+        </button>
+        <button class="tab-btn" data-tab="validation">
+          <i class="fas fa-check-double"></i> Validation
+          <span class="tab-badge" id="validation-badge" style="display:none">0</span>
+        </button>
+        <button class="tab-btn" data-tab="metadata">
+          <i class="fas fa-info-circle"></i> Metadata
+        </button>
+        <div class="tab-spacer"></div>
+        <div class="toolbar-actions">
+          <button id="copy-btn" class="toolbar-btn" title="Copy code">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <button id="download-btn" class="toolbar-btn" title="Download file">
+            <i class="fas fa-download"></i> Download
+          </button>
+          <button id="download-all-btn" class="toolbar-btn" title="Download all files">
+            <i class="fas fa-file-zipper"></i> All
+          </button>
+        </div>
+      </div>
+
+      <!-- Code Tab -->
+      <div class="tab-content active" id="code-tab">
+        <div class="output-lang-tabs" id="output-lang-tabs">
+          <button class="output-lang-tab active" data-lang="sas">
+            <span class="output-lang-icon sas">SAS</span>
+            <span class="output-lang-status" id="status-sas"></span>
+          </button>
+          <button class="output-lang-tab" data-lang="r">
+            <span class="output-lang-icon r">R</span>
+            <span class="output-lang-status" id="status-r"></span>
+          </button>
+          <button class="output-lang-tab" data-lang="python">
+            <span class="output-lang-icon python">Py</span>
+            <span class="output-lang-status" id="status-python"></span>
+          </button>
+          <div class="output-lang-spacer"></div>
+          <div class="code-stats">
+            <span class="code-stat" id="code-lines"><i class="fas fa-align-left"></i> — lines</span>
+            <span class="code-stat" id="code-size"><i class="fas fa-weight-scale"></i> — bytes</span>
+          </div>
+        </div>
+
+        <div class="code-area" id="code-area">
+          <div class="code-placeholder" id="code-placeholder">
+            <div class="placeholder-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+            <div class="placeholder-title">Ready to Generate</div>
+            <div class="placeholder-desc">
+              Select an <strong>Analysis Type</strong> to begin. Options will appear based on your selection.
+            </div>
+            <ul class="placeholder-steps">
+              <li><span class="step-num">1</span> Select analysis type</li>
+              <li><span class="step-num">2</span> Configure contextual options</li>
+              <li><span class="step-num">3</span> Click Generate — get SAS, R &amp; Python at once</li>
+            </ul>
+          </div>
+          <pre style="display:none"><code id="generated-code" class="language-sas"></code></pre>
+        </div>
+      </div>
+
+      <!-- Validation Tab -->
+      <div class="tab-content" id="validation-tab">
+        <div class="validation-area" id="validation-results">
+          <div class="validation-placeholder">
+            <i class="fas fa-clipboard-check"></i>
+            <p>Validation results will appear here after generating code.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metadata Tab -->
+      <div class="tab-content" id="metadata-tab">
+        <div class="metadata-area" id="metadata-results">
+          <div class="validation-placeholder">
+            <i class="fas fa-tags"></i>
+            <p>Generation metadata and submission readiness details will appear here.</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ══ Footer ══ -->
+  <footer class="app-footer">
+    <div class="footer-left">
+      <span>arc_gen v2.0</span>
+      <span class="footer-chip"><i class="fas fa-certificate" style="margin-right:4px"></i>CDISC ADaM IG v1.3</span>
+      <span class="footer-chip"><i class="fas fa-certificate" style="margin-right:4px"></i>SDTM IG v3.4</span>
+      <span class="footer-chip">ICH E9</span>
+    </div>
+    <div style="font-size:10.5px;color:var(--text-muted)">
+      Supports FDA · EMA · PMDA · NMPA submissions
+    </div>
+  </footer>
+
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/r.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

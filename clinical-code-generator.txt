@@ -1,0 +1,31 @@
+clinical-code-generator/
+├── .vscode/
+│   └── settings.json
+├── backend/
+│   ├── app.py
+│   ├── requirements.txt
+│   ├── generators/
+│   │   ├── __init__.py
+│   │   ├── sas_generator.py
+│   │   ├── r_generator.py
+│   │   └── python_generator.py
+│   ├── templates/
+│   │   ├── sas/
+│   │   ├── r/
+│   │   └── python/
+│   └── validators/
+│       ├── __init__.py
+│       └── cdisc_validator.py
+├── frontend/
+│   ├── index.html
+│   ├── css/
+│   │   └── styles.css
+│   ├── js/
+│   │   ├── app.js
+│   │   ├── code-generator.js
+│   │   └── file-upload.js
+│   └── assets/
+├── uploads/
+├── output/
+├── package.json
+└── README.md

@@ -1,0 +1,29 @@
+{
+    "name": "clinical-code-generator",
+    "version": "1.0.0",
+    "description": "Clinical Trial Analysis Code Generator - Submission Ready",
+    "scripts": {
+        "start:backend": "cd backend && python app.py",
+        "start:frontend": "npx serve frontend -l 3000",
+        "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+        "setup": "cd backend && pip install -r requirements.txt"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    },
+    "keywords": [
+        "clinical-trial",
+        "SAS",
+        "R",
+        "python",
+        "CDISC",
+        "submission"
+    ],
+    "author": "Clinical Programming Team",
+    "license": "MIT",
+    "main": "index.js",
+    "type": "commonjs",
+    "dependencies": {
+        "serve": "^14.2.6"
+    }
+}

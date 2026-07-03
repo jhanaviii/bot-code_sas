@@ -1,0 +1,8 @@
+flask
+flask-cors
+werkzeug
+jinja2
+pandas
+openpyxl
+python-docx
+jsonschema
